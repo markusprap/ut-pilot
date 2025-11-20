@@ -1,210 +1,334 @@
-# Deployment Guide - Vercel
+# Deployment Guide - UT-Pilot di Vercel
 
 ## Overview
 
-UT-Pilot requires two separate Vercel deployments:
-1. Frontend (React + Vite)
-2. Backend (Express API)
+UT-Pilot menggunakan **monorepo serverless architecture**:
+- **Frontend**: React + Vite → Static files di `/frontend/dist`
+- **Backend**: Express + TypeScript → Serverless functions di `/api/*`
+- **Single Deployment**: Satu project Vercel untuk keseluruhan aplikasi
 
 ## Prerequisites
 
-- Vercel account (free tier works)
-- Vercel CLI installed: `npm i -g vercel`
-- Google Gemini API key
+1. **Akun Vercel**: Daftar di [vercel.com](https://vercel.com)
+2. **Vercel CLI**: Install globally
+   ```bash
+   npm install -g vercel
+   ```
+3. **Login Vercel CLI**:
+   ```bash
+   vercel login
+   ```
+4. **Repository GitHub**: Pastikan code sudah di-push ke GitHub
+5. **Google Gemini API Key**: Dapatkan dari [Google AI Studio](https://makersuite.google.com/app/apikey)
 
-## Step 1: Deploy Backend
+---
 
-1. Navigate to backend directory:
+## Deployment Steps
+
+### 1. Install Dependencies
+
+Dari root directory project:
+
 ```bash
-cd backend
+npm install
 ```
 
-2. Login to Vercel (if not already):
+### 2. Build Frontend (Optional Test)
+
 ```bash
-vercel login
+npm run build
 ```
 
-3. Deploy backend:
+Ini akan:
+- Build frontend Vite ke `frontend/dist/`
+- Build backend TypeScript ke `api/dist/`
+
+### 3. Deploy ke Vercel
+
+Dari **root directory** (bukan folder frontend atau api):
+
 ```bash
 vercel --prod
 ```
 
-4. Follow prompts:
-   - Set up and deploy? Yes
-   - Which scope? Your account
-   - Link to existing project? No
-   - Project name? `ut-pilot-backend` (or your choice)
-   - Directory? `./`
-   - Override settings? No
+Follow the prompts:
+- **Set up and deploy?** → Yes
+- **Which scope?** → Pilih account Anda
+- **Link to existing project?** → No
+- **Project name?** → `ut-pilot` (atau nama lain)
+- **In which directory is your code located?** → `./` (root)
 
-5. Note the deployed URL (e.g., `https://ut-pilot-backend.vercel.app`)
+Vercel akan:
+1. Detect `vercel.json` configuration
+2. Build frontend dengan `npm run vercel-build`
+3. Build backend API sebagai serverless functions
+4. Deploy static files dan API routes
 
-6. Add environment variables in Vercel dashboard:
-   - Go to project settings
-   - Navigate to "Environment Variables"
-   - Add:
-     - `GEMINI_API_KEY`: Your Google Gemini API key
-     - `PORT`: 4000
-     - `FRONTEND_URL`: (will add after frontend deploy)
+### 4. Configure Environment Variables
 
-## Step 2: Deploy Frontend
+Setelah deployment selesai, buka Vercel Dashboard:
 
-1. Navigate to frontend directory:
+1. Go to: https://vercel.com/dashboard
+2. Pilih project **ut-pilot**
+3. Settings → Environment Variables
+4. Tambahkan variable berikut:
+
+| Key | Value | Environment |
+|-----|-------|-------------|
+| `GEMINI_API_KEY` | `your-google-gemini-api-key` | Production |
+| `NODE_ENV` | `production` | Production |
+| `PORT` | `4000` | Production (optional) |
+| `FRONTEND_URL` | `https://ut-pilot.vercel.app` | Production |
+
+**IMPORTANT**: Ganti `https://ut-pilot.vercel.app` dengan URL deployment Anda yang sebenarnya.
+
+### 5. Redeploy untuk Apply Environment Variables
+
+Setelah menambahkan environment variables:
+
 ```bash
-cd ../frontend
+vercel --prod
 ```
 
-2. Update `vercel.json` with backend URL:
+Atau dari Vercel Dashboard → Deployments → Redeploy
+
+---
+
+## Verification
+
+### Test Backend API
+
+```bash
+curl https://your-project.vercel.app/api/health
+```
+
+Expected response:
 ```json
 {
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "https://ut-pilot-backend.vercel.app/api/:path*"
-    }
-  ]
+  "status": "ok",
+  "message": "UT-Pilot Backend Running"
 }
 ```
 
-3. Deploy frontend:
-```bash
-vercel --prod
-```
+### Test Frontend
 
-4. Follow similar prompts as backend
+1. Buka: `https://your-project.vercel.app`
+2. Klik "Mulai Sekarang"
+3. Buat course baru
+4. Upload PDF modul
+5. Verifikasi:
+   - Notes generation berfungsi
+   - Quiz generation berfungsi
+   - Exam simulation berfungsi
+   - AI analysis muncul setelah exam
 
-5. Note the deployed URL (e.g., `https://ut-pilot.vercel.app`)
+---
 
-## Step 3: Update Backend CORS
+## Architecture Explanation
 
-1. Go to backend project in Vercel dashboard
-2. Update `FRONTEND_URL` environment variable to your deployed frontend URL
-3. Redeploy backend:
-```bash
-cd ../backend
-vercel --prod
-```
+### Vercel Configuration (`vercel.json`)
 
-## Step 4: Verify Deployment
-
-1. Visit your frontend URL
-2. Test upload functionality
-3. Check browser console for any CORS errors
-4. Verify API calls are reaching backend
-
-## Troubleshooting
-
-### CORS Errors
-- Ensure `FRONTEND_URL` in backend matches exact frontend URL (with https://)
-- Check Vercel logs for backend: `vercel logs`
-
-### API Key Not Working
-- Verify environment variable is set in Vercel dashboard
-- Check variable name is exactly `GEMINI_API_KEY`
-- Redeploy after adding variables
-
-### 404 on API Routes
-- Ensure `vercel.json` routes are configured correctly
-- Check backend logs: `vercel logs --follow`
-
-### Build Failures
-- Run `npm run build` locally first to catch errors
-- Check Node.js version compatibility (18+)
-- Review build logs in Vercel dashboard
-
-## Alternative: Monorepo Deployment
-
-For single deployment (not recommended but possible):
-
-1. Create root `vercel.json`:
 ```json
 {
   "builds": [
     {
       "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "frontend/dist"
-      }
+      "use": "@vercel/static-build"
     },
     {
-      "src": "backend/src/server.ts",
+      "src": "api/src/server.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "backend/src/server.ts"
+      "dest": "api/src/server.ts"
     },
     {
       "src": "/(.*)",
-      "dest": "frontend/dist/$1"
+      "dest": "/frontend/dist/$1"
     }
   ]
 }
 ```
 
-2. Deploy from root:
+**Routing Logic:**
+1. Request ke `/api/*` → Diarahkan ke serverless function (Express backend)
+2. Request ke `/` atau `/*` → Served dari `frontend/dist/` (static files)
+
+**Benefits:**
+- Single URL untuk frontend dan backend
+- No CORS issues (same-origin)
+- Automatic HTTPS
+- Global CDN untuk static files
+- Serverless auto-scaling untuk API
+
+### Folder Structure
+
+```
+ut-pilot/
+├── frontend/           # React app
+│   ├── src/
+│   └── dist/          # Build output (served as static)
+├── api/               # Express backend
+│   ├── src/
+│   │   └── server.ts  # Serverless function entry point
+│   └── dist/          # TypeScript build output
+├── vercel.json        # Deployment config
+└── package.json       # Root workspace
+```
+
+---
+
+## Troubleshooting
+
+### Build Errors
+
+**Problem**: `vercel-build` script fails
+
+**Solution**: Run locally first to debug:
 ```bash
-vercel --prod
+npm run build
 ```
 
-Note: This approach may have limitations with module resolution.
+Check for TypeScript errors or missing dependencies.
 
-## Environment Variables Summary
+---
 
-### Backend (Vercel Dashboard)
-```
-GEMINI_API_KEY=<your-api-key>
-PORT=4000
-FRONTEND_URL=https://your-frontend.vercel.app
-```
+### API Routes Not Working
 
-### Frontend (No variables needed)
-API URL is handled by `vercel.json` rewrites.
+**Problem**: 404 error on `/api/gemini/upload`
 
-## Post-Deployment
+**Check:**
+1. Vercel logs: `vercel logs --prod`
+2. Pastikan `api/src/server.ts` exports handler untuk Vercel:
+   ```typescript
+   export default app; // Add this at the end of server.ts
+   ```
 
-1. Test all features:
-   - Course creation
-   - PDF upload
-   - Note generation
-   - Quiz generation
-   - Exam simulation
-   - History review
+---
 
-2. Monitor usage:
-   - Vercel analytics dashboard
-   - Gemini API quota usage
-   - Function execution logs
+### Environment Variables Not Working
 
-3. Set up custom domain (optional):
-   - Add domain in Vercel project settings
-   - Update DNS records
-   - Update `FRONTEND_URL` in backend
+**Problem**: `GEMINI_API_KEY` undefined
+
+**Solution:**
+1. Check Vercel Dashboard → Settings → Environment Variables
+2. Pastikan variable tersimpan untuk **Production** environment
+3. Redeploy setelah menambahkan variables
+
+---
+
+### CORS Errors
+
+**Problem**: Frontend tidak bisa call API
+
+**Solution:**
+Harusnya tidak ada masalah CORS karena satu domain. Jika masih error:
+
+1. Check `api/src/server.ts` CORS config:
+   ```typescript
+   app.use(cors({
+     origin: process.env.FRONTEND_URL || '*',
+     credentials: true
+   }));
+   ```
+
+2. Update `FRONTEND_URL` environment variable dengan URL production yang benar
+
+---
+
+### PDF Upload Fails
+
+**Problem**: "File too large" error
+
+**Vercel Limits:**
+- Free tier: 5MB request body
+- Pro tier: 50MB request body
+
+**Solution:**
+- Upgrade ke Vercel Pro jika perlu upload PDF > 5MB
+- Atau compress PDF sebelum upload
+
+---
+
+### Cold Start Delays
+
+**Problem**: First API request lambat (5-10 detik)
+
+**Explanation**: Serverless functions have "cold starts" setelah tidak digunakan beberapa menit.
+
+**Solution:**
+- Normal behavior untuk serverless
+- Consider Vercel Pro untuk faster cold starts
+- Atau implement "keep-alive" ping dari frontend
+
+---
 
 ## Cost Considerations
 
-### Vercel Free Tier Limits
-- 100 GB bandwidth/month
-- 100 hours serverless function execution
-- 6000 builds/month
+**Vercel Free Tier:**
+- Unlimited deployments
+- 100GB bandwidth/month
+- Serverless function executions: 100 GB-Hours
+- Typically sufficient untuk project personal/demo
 
-### Gemini API Free Tier
-- 15 requests per minute
-- 1 million tokens per minute
-- 1500 requests per day
+**Upgrade to Pro jika:**
+- Traffic > 100GB/month
+- Butuh upload PDF > 5MB
+- Perlu faster cold starts
+- Butuh team collaboration features
 
-For production use with multiple users, consider:
-- Vercel Pro plan ($20/month)
-- Gemini API paid tier
-- Implementing rate limiting
-- Adding user authentication
+---
+
+## Alternative: GitHub Integration
+
+### Auto-Deploy on Git Push
+
+1. Import project di Vercel Dashboard:
+   - Klik "Add New" → "Project"
+   - Import from GitHub: `markusprap/ut-pilot`
+   - Root Directory: `./`
+   - Framework Preset: Other
+
+2. Configure build settings:
+   - Build Command: `npm run vercel-build`
+   - Output Directory: `frontend/dist`
+   - Install Command: `npm install`
+
+3. Set environment variables (sama seperti sebelumnya)
+
+4. Setiap push ke `main` branch akan auto-deploy
+
+**Benefit**: No need manual `vercel --prod`, otomatis deploy saat git push.
+
+---
+
+## Development vs Production
+
+### Local Development
+
+```bash
+npm run dev
+```
+
+- Frontend: `localhost:3000`
+- Backend: `localhost:4000`
+- Vite proxy mengarahkan `/api/*` ke backend
+
+### Production
+
+- Single URL: `https://ut-pilot.vercel.app`
+- Frontend: Static files dari CDN
+- Backend: Serverless functions (`/api/*` routes)
+- No proxy needed
+
+---
 
 ## Support
 
-For deployment issues:
-- Check Vercel docs: https://vercel.com/docs
-- Review Gemini API docs: https://ai.google.dev/docs
-- Open issue on GitHub: https://github.com/markusprap/ut-pilot/issues
+Issues atau questions:
+- GitHub Issues: https://github.com/markusprap/ut-pilot/issues
+- Vercel Docs: https://vercel.com/docs
+- Google Gemini API: https://ai.google.dev/docs
