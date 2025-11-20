@@ -12,8 +12,16 @@ export const uploadFileToGemini = async (file: File): Promise<{ fileUri: string;
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Gagal upload file');
+    let errorMsg = 'Gagal upload file';
+    try {
+      const error = await response.json();
+      errorMsg = error.error || errorMsg;
+    } catch (e) {
+      const text = await response.text();
+      console.error('Upload error response:', text);
+      errorMsg = `Server error (${response.status})`;
+    }
+    throw new Error(errorMsg);
   }
 
   return response.json();
@@ -42,8 +50,16 @@ export const generateContentFromUri = async (
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Gagal generate konten');
+    let errorMsg = 'Gagal generate konten';
+    try {
+      const error = await response.json();
+      errorMsg = error.error || errorMsg;
+    } catch (e) {
+      const text = await response.text();
+      console.error('Generate error response:', text);
+      errorMsg = `Server error (${response.status})`;
+    }
+    throw new Error(errorMsg);
   }
 
   const data = await response.json();
@@ -66,8 +82,16 @@ export const analyzeExamPerformance = async (
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Gagal menganalisis ujian');
+    let errorMsg = 'Gagal menganalisis ujian';
+    try {
+      const error = await response.json();
+      errorMsg = error.error || errorMsg;
+    } catch (e) {
+      const text = await response.text();
+      console.error('Analyze error response:', text);
+      errorMsg = `Server error (${response.status})`;
+    }
+    throw new Error(errorMsg);
   }
 
   const data = await response.json();
