@@ -1,4 +1,3 @@
-import '../../api/src/config/env.js';
 import { generateContentFromUri } from '../../api/src/services/geminiService.js';
 import type { GenerateContentRequest } from '../../api/src/types/index.js';
 

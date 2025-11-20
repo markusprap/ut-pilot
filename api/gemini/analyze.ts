@@ -1,4 +1,3 @@
-import '../../api/src/config/env.js';
 import { analyzeExamPerformance } from '../../api/src/services/geminiService.js';
 import type { AnalyzeExamRequest } from '../../api/src/types/index.js';
 
