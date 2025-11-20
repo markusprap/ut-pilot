@@ -79,7 +79,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, selectedFile, onC
           </h3>
           <p className="text-sm text-slate-500 mb-4 max-w-xs">
             Tarik file ke sini atau klik untuk mencari. 
-            <br/><span className="text-xs text-slate-400">(Maksimal 50MB. Gunakan ilovepdf.com untuk kompres jika perlu)</span>
+            <br/><span className="text-xs text-slate-400">(Maksimal 50MB - upload langsung ke Google AI)</span>
           </p>
         </div>
       ) : (
