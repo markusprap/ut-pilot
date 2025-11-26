@@ -284,6 +284,7 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
                 onBack={() => setViewState('NOTES')} // Kembali ke materi
                 modeName={`Latihan Modul ${chapter}`}
                 isExamMode={false}
+                onRetry={handleStartQuiz}
               />
             ) : (
               <div className="flex flex-col items-center justify-center min-h-[400px] animate-in fade-in">

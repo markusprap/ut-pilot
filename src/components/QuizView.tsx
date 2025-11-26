@@ -15,6 +15,7 @@ interface QuizViewProps {
     initialAnswers?: number[];
     initialIsCompleted?: boolean;
     initialAnalysis?: string;
+    onRetry?: () => void;
 }
 
 const QuizView: React.FC<QuizViewProps> = ({
@@ -25,7 +26,8 @@ const QuizView: React.FC<QuizViewProps> = ({
     onComplete,
     initialAnswers,
     initialIsCompleted = false,
-    initialAnalysis
+    initialAnalysis,
+    onRetry
 }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -286,11 +288,22 @@ const QuizView: React.FC<QuizViewProps> = ({
                         <button
                             onClick={onBack}
                             type="button"
-                            className="flex items-center justify-center px-6 py-3 bg-blue-600 dark:bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 dark:hover:bg-blue-500 transition-colors shadow-sm"
+                            className="flex items-center justify-center px-6 py-3 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors shadow-sm"
                         >
                             <ArrowLeft className="w-5 h-5 mr-2" />
                             Kembali ke Menu
                         </button>
+
+                        {onRetry && (
+                            <button
+                                onClick={onRetry}
+                                type="button"
+                                className="flex items-center justify-center px-6 py-3 bg-blue-600 dark:bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 dark:hover:bg-blue-500 transition-colors shadow-sm"
+                            >
+                                <BrainCircuit className="w-5 h-5 mr-2" />
+                                Coba Lagi (Soal Baru)
+                            </button>
+                        )}
                     </div>
                 </div>
 
