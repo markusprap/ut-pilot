@@ -1,0 +1,5 @@
+{
+  "name": "UT-Pilot",
+  "description": "Asisten belajar cerdas untuk mahasiswa Universitas Terbuka. Upload modul PDF Anda untuk mendapatkan rangkuman (Smart Notes), Kuis Per Bab, atau Simulasi Ujian Lengkap berbasis AI.",
+  "requestFramePermissions": []
+}
