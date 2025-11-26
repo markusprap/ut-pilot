@@ -7,6 +7,7 @@ import QuizView from './QuizView';
 import PdfViewer from './PdfViewer';
 import ChatWidget from './ChatWidget';
 import { Loader2, ArrowLeft, ArrowRight, BookOpen, HelpCircle, FileText } from 'lucide-react';
+import { CustomAlert } from './CustomModal';
 
 interface StudySessionProps {
   course: Course;
@@ -25,6 +26,12 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
   const [chapter, setChapter] = useState(initialChapter);
   const [viewState, setViewState] = useState<ViewState>(initialView);
   const [noteComplexity, setNoteComplexity] = useState<NoteComplexity>('NORMAL');
+  const [alertState, setAlertState] = useState<{ isOpen: boolean; title: string; message: string; type: 'error' | 'info' | 'success' }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info'
+  });
 
   // Local component state (synced from props/storage or fetched)
   const [notes, setNotes] = useState<string | null>(null);
@@ -138,7 +145,12 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
       setViewState('QUIZ');
     } catch (error) {
       console.error(error);
-      alert("Gagal membuat kuis. Coba lagi nanti.");
+      setAlertState({
+        isOpen: true,
+        title: 'Gagal Membuat Kuis',
+        message: 'Maaf, terjadi kesalahan saat membuat kuis. Silakan coba lagi nanti.',
+        type: 'error'
+      });
     } finally {
       setIsLoadingQuiz(false);
     }
@@ -171,6 +183,14 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+      <CustomAlert
+        isOpen={alertState.isOpen}
+        onClose={() => setAlertState(prev => ({ ...prev, isOpen: false }))}
+        title={alertState.title}
+        message={alertState.message}
+        type={alertState.type}
+      />
+
       {/* Sticky Header for Session */}
       <div className="sticky top-16 z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-3 shadow-sm transition-colors duration-300">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">

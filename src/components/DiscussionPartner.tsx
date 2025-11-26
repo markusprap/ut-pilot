@@ -143,7 +143,10 @@ const DiscussionPartner: React.FC<DiscussionPartnerProps> = ({ courseName, onBac
                                                 <ExternalLink className="w-4 h-4" /> Buka
                                             </button>
                                             <button
-                                                onClick={() => deleteDiscussion(disc.id)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    deleteDiscussion(disc.id);
+                                                }}
                                                 className="px-3 py-2 bg-white dark:bg-slate-700 text-red-500 dark:text-red-400 border border-slate-200 dark:border-slate-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200 transition-all shadow-sm"
                                                 title="Hapus Diskusi"
                                             >
@@ -162,6 +165,23 @@ const DiscussionPartner: React.FC<DiscussionPartnerProps> = ({ courseName, onBac
                         )}
                     </div>
                 </div>
+
+                {/* Custom Modals for Step 0 */}
+                <CustomAlert
+                    isOpen={alert.isOpen}
+                    onClose={() => setAlert({ ...alert, isOpen: false })}
+                    title={alert.title}
+                    message={alert.message}
+                    type={alert.type}
+                />
+                <CustomConfirm
+                    isOpen={confirm.isOpen}
+                    onClose={() => setConfirm({ ...confirm, isOpen: false })}
+                    onConfirm={confirm.onConfirm}
+                    title={confirm.title}
+                    message={confirm.message}
+                    type="danger"
+                />
             </div>
         );
     }
