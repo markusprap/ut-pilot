@@ -8,16 +8,25 @@ import LandingPage from './components/LandingPage';
 import DiscussionPartner from './components/DiscussionPartner';
 import OnboardingModal from './components/OnboardingModal';
 import CourseDashboard from './components/CourseDashboard';
+import MaintenancePage from './components/MaintenancePage'; // Import Maintenance Page
 import { AppMode, QuizQuestion, ExamHistoryItem } from './types';
 import { generateContentFromUri } from './services/geminiService';
 import { getFileFromDB } from './services/db';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { useApp } from './context/AppContext';
 
+// SET TO TRUE TO ENABLE MAINTENANCE MODE
+const IS_MAINTENANCE_MODE = true;
+
 // Simple UUID generator
 const generateId = () => Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
 
 const App: React.FC = () => {
+    // Immediate return for maintenance mode
+    if (IS_MAINTENANCE_MODE) {
+        return <MaintenancePage />;
+    }
+
     const {
         courses,
         activeCourse,

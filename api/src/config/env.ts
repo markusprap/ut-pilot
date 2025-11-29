@@ -7,9 +7,9 @@ const __dirname = path.dirname(__filename);
 
 // Try multiple paths
 const possiblePaths = [
-  path.join(__dirname, '../../.env'),
-  path.join(__dirname, '../.env'),
-  '/home/markusprap/Pribadi/Project/ut-pilot/backend/.env'
+  path.join(__dirname, '../../../.env'), // Root ut-pilot/.env
+  path.join(__dirname, '../../.env'),    // api/.env
+  path.join(__dirname, '../.env'),       // api/src/.env
 ];
 
 let loaded = false;
@@ -29,4 +29,4 @@ if (!loaded) {
 
 console.log('🔑 GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? 'Present ✅' : 'Missing ❌');
 
-export {};
+export { };

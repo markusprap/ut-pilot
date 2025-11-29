@@ -23,3 +23,32 @@ export interface AnalyzeExamRequest {
   questions: QuizQuestion[];
   userAnswers: number[];
 }
+
+export interface ChatMessage {
+  role: 'user' | 'model';
+  text: string;
+}
+
+export interface ChatRequest {
+  history: ChatMessage[];
+  message: string;
+  userName?: string;
+  contextMaterial?: string;
+}
+
+export interface ResearchResult {
+  text: string;
+  sources: { uri: string; title: string }[];
+}
+
+export interface DiscussionResearchRequest {
+  question: string;
+  userName?: string;
+}
+
+export interface DiscussionFinalRequest {
+  question: string;
+  researchResult: string;
+  userPoints: string;
+  userName?: string;
+}

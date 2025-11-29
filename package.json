@@ -11,16 +11,16 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@google/genai": "^1.30.0",
+    "lucide-react": "^0.554.0",
+    "pdfjs-dist": "4.0.379",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
-    "@google/genai": "^1.30.0",
-    "lucide-react": "^0.554.0",
-    "uuid": "^13.0.0",
-    "pdfjs-dist": "4.0.379"
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
+    "@types/node": "^22.19.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.0.0",
