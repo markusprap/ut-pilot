@@ -1,5 +1,5 @@
 import React from 'react';
-import { Construction, Clock, ShieldAlert } from 'lucide-react';
+import { Construction, Clock, ShieldAlert, Heart, Coffee } from 'lucide-react';
 
 const MaintenancePage: React.FC = () => {
     return (
@@ -39,11 +39,33 @@ const MaintenancePage: React.FC = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="pt-8">
-                    <p className="text-sm text-slate-400 dark:text-slate-600">
-                        &copy; {new Date().getFullYear()} UT-Pilot AI Learning Partner
-                    </p>
-                </div>
+                <footer className="pt-12 pb-6">
+                    <div className="flex flex-col items-center text-center gap-4">
+                        <div className="flex flex-col items-center gap-2">
+                            <p className="text-slate-900 dark:text-slate-200 font-semibold text-sm">© 2025 UT-Pilot. Asisten Belajar Cerdas.</p>
+
+                            <div className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
+                                Made with
+                                <Heart className="w-4 h-4 text-red-500 fill-red-500" />
+                                and
+                                <Coffee className="w-4 h-4 text-amber-700 dark:text-amber-500" />
+                                by
+                                <a href="https://www.instagram.com/markusprap/" target="_blank" rel="noreferrer" className="font-medium text-slate-900 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 underline decoration-slate-300 dark:decoration-slate-600 hover:decoration-blue-500 transition-all">
+                                    Markus Prap Kurniawan
+                                </a>
+                            </div>
+                        </div>
+
+                        <a
+                            href="https://teer.id/programmergenz"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs font-medium text-slate-500 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 transition-colors"
+                        >
+                            Dukung Pengembangan Aplikasi Ini
+                        </a>
+                    </div>
+                </footer>
             </div>
         </div>
     );
