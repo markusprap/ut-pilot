@@ -1,6 +1,26 @@
 {
-    "buildCommand": "npm install && npm run build",
-    "outputDirectory": "dist",
-    "installCommand": "npm install",
-    "framework": "vite"
+    "version": 2,
+    "builds": [
+        {
+            "src": "apps/api/src/server.ts",
+            "use": "@vercel/node"
+        },
+        {
+            "src": "apps/web/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "dist"
+            }
+        }
+    ],
+    "rewrites": [
+        {
+            "source": "/api/(.*)",
+            "destination": "/apps/api/src/server.ts"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/apps/web/$1"
+        }
+    ]
 }

@@ -1,0 +1,22 @@
+import { Queue } from 'bullmq';
+import { connection } from './connection.js';
+
+export const GEMINI_QUEUE_NAME = 'gemini-generation';
+
+export const geminiQueue = new Queue(GEMINI_QUEUE_NAME, {
+    connection,
+    defaultJobOptions: {
+        attempts: 3,
+        backoff: {
+            type: 'exponential',
+            delay: 1000,
+        },
+        removeOnComplete: {
+            age: 3600, // Keep for 1 hour
+            count: 1000,
+        },
+        removeOnFail: {
+            age: 24 * 3600, // Keep for 24 hours
+        },
+    },
+});
