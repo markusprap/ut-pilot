@@ -350,19 +350,27 @@ export const fetchQuestionsFromBank = async (courseCode: string, chapter?: numbe
     try {
 
 
-        // Use RPC if available for true randomization
-        const { data, error } = await supabase.rpc('get_random_questions', {
-            p_course_code: courseCode,
-            p_limit: limit
-        });
+        // Use RPC if available for true randomization, BUT ONLY IF NO CHAPTER Filter is needed
+        // (Because current get_random_questions RPC intentionally scans entire bank for exams)
+        // If chapter is provided, we MUST use standard select to filter by chapter.
+        let rpcData = null;
+        let rpcError = null;
 
-        // Fallback to normal select if RPC fails or not exists (or empty)
-        if (error || !data || data.length === 0) {
-            // Only warn if it's a real error, otherwise it's just empty/missing RPC which is fine for new setup
-            if (error) {
-                console.warn("[BankSoal] RPC 'get_random_questions' unused or failed, falling back to standard select.", error.message);
-            } else {
-                // Fallback silent
+        if (!chapter) {
+            const { data, error } = await supabase.rpc('get_random_questions', {
+                p_course_code: courseCode,
+                p_limit: limit
+            });
+            rpcData = data;
+            rpcError = error;
+        }
+
+        // Fallback or Normal Select (If chapter specified OR RPC failed/skipped)
+        if (chapter || rpcError || !rpcData || rpcData.length === 0) {
+
+            // Only warn if it's a real error AND we tried RPC
+            if (rpcError && !chapter) {
+                console.warn("[BankSoal] RPC 'get_random_questions' unused or failed, falling back to standard select.", rpcError.message);
             }
 
             let query = supabase
@@ -387,20 +395,26 @@ export const fetchQuestionsFromBank = async (courseCode: string, chapter?: numbe
 
             return shuffled.map((q: any) => ({
                 id: Math.floor(Math.random() * 1000000), // Temp number ID for frontend compatibility
+                db_id: q.id, // Store real DB ID
                 question: q.question,
                 options: q.options,
                 correct_index: q.correct_index,
-                explanation: q.explanation
+                explanation: q.explanation,
+                image_url: q.image_url, // Pass image url
+                image_prompt: q.image_prompt // Pass prompt
             }));
         }
 
         // Map RPC result
-        return data.map((q: any) => ({
+        return rpcData.map((q: any) => ({
             id: Math.floor(Math.random() * 1000000),
+            db_id: q.id,
             question: q.question,
             options: q.options,
             correct_index: q.correct_index,
-            explanation: q.explanation
+            explanation: q.explanation,
+            image_url: q.image_url,
+            image_prompt: q.image_prompt
         }));
 
     } catch (e) {
