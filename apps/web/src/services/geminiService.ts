@@ -211,34 +211,57 @@ export const analyzeExamPerformance = async (questions: QuizQuestion[], userAnsw
     }
 };
 
-// TAHAP 4: Chat AI Tutor
+// TAHAP 4: Chat AI Tutor (with Retry)
 export const sendChatToTutor = async (history: ChatMessage[], newMessage: string, userName: string = "Mahasiswa", contextMaterial?: string): Promise<string> => {
-    try {
-        const authHeader = await getAuthHeader();
-        const response = await fetch(`${API_BASE_URL}/chat`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                ...authHeader
-            },
-            body: JSON.stringify({
-                history,
-                message: newMessage,
-                userName,
-                contextMaterial
-            })
-        });
+    const maxRetries = 3;
+    let lastError: Error | null = null;
 
-        if (!response.ok) {
-            throw new Error("Chat failed");
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const authHeader = await getAuthHeader();
+            const response = await fetch(`${API_BASE_URL}/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authHeader
+                },
+                body: JSON.stringify({
+                    history,
+                    message: newMessage,
+                    userName,
+                    contextMaterial
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `Chat failed with status ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.text;
+
+        } catch (error: any) {
+            console.warn(`[Chat] Attempt ${attempt}/${maxRetries} failed:`, error.message);
+            lastError = error;
+
+            // Don't retry on certain errors
+            if (error.message?.includes("401") || error.message?.includes("403")) {
+                throw new Error("Sesi Anda telah berakhir. Silakan refresh halaman.");
+            }
+
+            // Wait before retry (exponential backoff: 1s, 2s, 4s)
+            if (attempt < maxRetries) {
+                const waitTime = Math.pow(2, attempt - 1) * 1000;
+                console.log(`[Chat] Waiting ${waitTime}ms before retry...`);
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+            }
         }
-
-        const data = await response.json();
-        return data.text;
-    } catch (error) {
-        console.error("Chat Error:", error);
-        throw new Error("Maaf, koneksi ke server AI terganggu. Mohon coba lagi.");
     }
+
+    // All retries failed
+    console.error("Chat Error after all retries:", lastError);
+    throw new Error("Maaf, koneksi ke server AI terganggu setelah beberapa percobaan. Mohon coba lagi nanti.");
 };
 
 // HELPER: Get Quota Status
