@@ -437,10 +437,13 @@ export const generateContentFromUri = async (
              - ANALISIS SENDIRI jawaban yang benar berdasarkan materi modul (JANGAN PERCAYA kunci jawaban modul karena sering SALAH)
              - Berikan penjelasan mengapa jawaban tersebut benar, berdasarkan materi di modul
           
-          PENTING:
+          ⚠️ ATURAN KRITIS (WAJIB DIPATUHI):
+          - **CROSS-CHECK**: Setelah menulis 'explanation', PERIKSA ULANG apakah 'correct_index' sesuai dengan logika di explanation!
+          - **CONTOH KESALAHAN YANG HARUS DIHINDARI**: Jika explanation menyatakan "opsi A adalah jawaban yang benar karena...", maka 'correct_index' HARUS 0 (index untuk opsi A).
+          - **JANGAN COPY KUNCI JAWABAN MODUL**: Kunci jawaban di modul sering SALAH! Analisis ulang berdasarkan materi.
+          - Jika soal memiliki kata "TIDAK", "BUKAN", atau "KECUALI", hati-hati! Jawaban benar adalah opsi yang BERBEDA dari yang lain.
           - Prioritas utama adalah Tes Formatif, bukan Latihan atau soal lain
           - Jika soal memerlukan gambar/grafik dari modul, deskripsikan gambar tersebut di field 'image_prompt'
-          - Jawaban dan penjelasan harus AKURAT berdasarkan analisis AI terhadap materi, BUKAN copy-paste kunci jawaban modul
           - PASTIKAN CODE SNIPPET (jika ada) terformat rapi dengan \`\`\`language.
           
           FORMAT OUTPUT: JSON Array berisi SEMUA objek soal yang ditemukan.
@@ -657,43 +660,62 @@ const getDiscussionPartnerInstruction = (userName: string) => `
     - Nada bicara: Membantu, cerdas, tapi santai("Bro", "Kak", "${userName}").
 `;
 
-// TAHAP 4: Chat AI Tutor
+// TAHAP 4: Chat AI Tutor (Stateless for Serverless Compatibility)
 export const sendChatToTutor = async (history: ChatMessage[], newMessage: string, userName: string = "Mahasiswa", contextMaterial?: string): Promise<string> => {
-    const chat = ai.chats.create({
-        model: MODEL_NAME,
-        config: {
-            systemInstruction: getTutorInstruction(userName),
-        },
-        history: [
-            {
-                role: 'user',
-                parts: [{
-                    text: `SYSTEM CONTEXT (Hidden):
+
+    // Build conversation history as content parts
+    const conversationHistory = [
+        // System context as first user message
+        {
+            role: 'user' as const,
+            parts: [{
+                text: `SYSTEM CONTEXT (Hidden):
                 Berikut adalah materi yang sedang dibaca user (CONTEXT MATERIAL). 
                 Gunakan ini sebagai referensi utama jawabanmu jika relevan.
                 Jika user bertanya tentang hal yang ada di sini, jelaskan berdasarkan teks ini.
                 
                 --- MULAI CONTEXT MATERIAL ---
-        ${contextMaterial ? contextMaterial.substring(0, 20000) : "Tidak ada materi spesifik yang sedang dibuka."}
+        ${contextMaterial ? contextMaterial.substring(0, 15000) : "Tidak ada materi spesifik yang sedang dibuka."}
     --- SELESAI CONTEXT MATERIAL --- ` }]
-            },
-            {
-                role: 'model',
-                parts: [{ text: `Dimengerti. Saya siap menjawab pertanyaan ${userName} berdasarkan konteks materi tersebut dengan gaya dosen pembimbing yang ramah.` }]
-            },
-            // Map history to API format
-            ...history.map(msg => ({
-                role: msg.role,
-                parts: [{ text: msg.text }]
-            }))
-        ]
-    });
+        },
+        {
+            role: 'model' as const,
+            parts: [{ text: `Dimengerti. Saya siap menjawab pertanyaan ${userName} berdasarkan konteks materi tersebut dengan gaya dosen pembimbing yang ramah.` }]
+        },
+        // Map existing history
+        ...history.map(msg => ({
+            role: msg.role as 'user' | 'model',
+            parts: [{ text: msg.text }]
+        })),
+        // Add new message
+        {
+            role: 'user' as const,
+            parts: [{ text: newMessage }]
+        }
+    ];
 
     try {
-        const response = await chat.sendMessage({ message: newMessage });
-        return response.text || "";
-    } catch (error) {
+        const response = await generateWithRetry({
+            model: MODEL_NAME,
+            contents: conversationHistory,
+            config: {
+                systemInstruction: getTutorInstruction(userName),
+                safetySettings: [
+                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+                ]
+            }
+        });
+
+        return response.text || "Maaf, saya tidak bisa menjawab saat ini.";
+    } catch (error: any) {
         console.error("Chat Error:", error);
+        // More specific error handling
+        if (error.message?.includes("429") || error.message?.includes("quota")) {
+            throw new Error("Maaf, server sedang sibuk. Mohon tunggu 1-2 menit lalu coba lagi.");
+        }
         throw new Error("Maaf, koneksi ke server AI terganggu. Mohon coba lagi.");
     }
 };
