@@ -186,21 +186,40 @@ export const uploadFileToGemini = async (fileBuffer: Buffer, originalName: strin
     }
 };
 
-// WRAPPER: Retry Logic for Model Handling
-const generateWithRetry = async (config: any, retries = 1): Promise<any> => {
+// WRAPPER: Retry Logic for Model Handling (with 503/Overload Support)
+const generateWithRetry = async (config: any, retries = 2): Promise<any> => {
     try {
         console.log(`Generating with Model: ${config.model}`);
         return await ai.models.generateContent(config);
     } catch (e: any) {
         console.warn(`Model ${config.model} FAILED:`, e.message || e);
 
-        // Check for specific retry-able errors (404/Not Found or 429/Quota)
-        const isModelError = e.message?.includes("not found") || e.message?.includes("404") || e.message?.includes("429") || e.status === 404 || e.status === 429;
+        // Check for retry-able errors: 404 (Not Found), 429 (Quota), 503 (Overloaded)
+        const isRetryable =
+            e.message?.includes("not found") ||
+            e.message?.includes("404") ||
+            e.message?.includes("429") ||
+            e.message?.includes("503") ||
+            e.message?.includes("overloaded") ||
+            e.message?.includes("UNAVAILABLE") ||
+            e.status === 404 ||
+            e.status === 429 ||
+            e.status === 503;
 
-        if (retries > 0 && isModelError && config.model !== MODEL_EMERGENCY_BACKUP) {
-            console.log(`⚠️ Switching to BACKUP MODEL: ${MODEL_EMERGENCY_BACKUP} ...`);
-            const newConfig = { ...config, model: MODEL_EMERGENCY_BACKUP };
-            return await generateWithRetry(newConfig, retries - 1);
+        if (retries > 0 && isRetryable) {
+            // Wait before retry (exponential backoff: 2s, 4s)
+            const waitTime = (3 - retries) * 2000;
+            console.log(`⏳ Waiting ${waitTime / 1000}s before retry...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+
+            // If still failing, try backup model
+            if (retries === 1 && config.model !== MODEL_EMERGENCY_BACKUP) {
+                console.log(`⚠️ Switching to BACKUP MODEL: ${MODEL_EMERGENCY_BACKUP} ...`);
+                const newConfig = { ...config, model: MODEL_EMERGENCY_BACKUP };
+                return await generateWithRetry(newConfig, retries - 1);
+            }
+
+            return await generateWithRetry(config, retries - 1);
         }
         throw e;
     }
