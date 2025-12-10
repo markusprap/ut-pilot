@@ -31,6 +31,7 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
   const [chapter, setChapter] = useState(initialChapter);
 
   const [viewState, setViewState] = useState<ViewState>(initialView);
+  const [quizSessionId, setQuizSessionId] = useState(0); // Unique ID for forcing QuizView remount
   const [noteComplexity, setNoteComplexity] = useState<NoteComplexity>('NORMAL');
   const [alertState, setAlertState] = useState<{ isOpen: boolean; title: string; message: string; type: 'error' | 'info' | 'success' }>({
     isOpen: false,
@@ -216,7 +217,8 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
       // Use existing pool, PICK NEW RANDOM SET each time this is clicked
       const selectedQuestions = getRandomQuestions(pool, 10);
       setActiveQuestions(selectedQuestions);
-      setQuizState(resetState(selectedQuestions.length)); // Prepare state
+      setQuizState(resetState(selectedQuestions.length)); // Prepare state BEFORE viewState change
+      setQuizSessionId(prev => prev + 1); // Force QuizView remount
       setViewState('QUIZ');
       return;
     }
@@ -289,6 +291,7 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
       const selectedQuestions = getRandomQuestions(quizPool, 10);
       setActiveQuestions(selectedQuestions);
       setQuizState(resetState(selectedQuestions.length)); // Prepare state
+      setQuizSessionId(prev => prev + 1); // Force QuizView remount
       setViewState('QUIZ');
 
     } catch (error) {
@@ -491,7 +494,7 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
           <div className="pt-8">
             {activeQuestions ? (
               <QuizView
-                key={JSON.stringify(activeQuestions[0])} // Force remount/reset when questions change
+                key={`quiz-session-${quizSessionId}`} // Force remount with unique session ID
                 questions={activeQuestions}
                 onBack={() => setViewState('NOTES')} // Kembali ke materi
                 modeName={`Latihan Modul ${chapter}`}

@@ -219,16 +219,14 @@ const QuizView: React.FC<QuizViewProps> = ({
             const currentAnswers = answersRef.current;
             const currentQuestions = questionsRef.current;
 
-            // 2. HITUNG SKOR SECARA LOKAL (INSTANT)
-            // Kita tidak perlu AI untuk ini karena kunci jawaban sudah ada di currentQuestions[i].correct_index
+            // 2. HITUNG SKOR SECARA LOKAL DARI ANSWERS ARRAY (BUKAN STATE)
+            // Selalu hitung dari array untuk menghindari bug race condition
             let finalScore = 0;
-            if (isExamMode) {
-                currentAnswers.forEach((ans, idx) => {
-                    if (ans === currentQuestions[idx].correct_index) finalScore++;
-                });
-            } else {
-                finalScore = score; // Kalau practice mode, pakai score yang sudah berjalan
-            }
+            currentAnswers.forEach((ans, idx) => {
+                if (ans !== -1 && ans === currentQuestions[idx]?.correct_index) {
+                    finalScore++;
+                }
+            });
 
             setScore(finalScore); // Update state score visual
 
