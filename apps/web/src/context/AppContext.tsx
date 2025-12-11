@@ -212,14 +212,36 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     }
 
                     // Deep Merge modules: Parent modules (base) + Enrollment modules (student progress)
-                    const mergedModules: Record<number, any> = { ...(parentCourse.modules || {}) };
+                    // IMPORTANT: Parent notes/quiz take priority if enrollment doesn't have them
+                    const mergedModules: Record<number, any> = {};
 
+                    // First, copy all parent modules
+                    const parentModules = parentCourse.modules || {};
+                    Object.keys(parentModules).forEach((key: string) => {
+                        const chapterNum = Number(key);
+                        mergedModules[chapterNum] = { ...parentModules[key] };
+                    });
+
+                    // Then, overlay enrollment modules (student progress) but preserve parent content
                     if (e.modules && typeof e.modules === 'object') {
                         Object.keys(e.modules).forEach((key: string) => {
                             const chapterNum = Number(key);
+                            const parentModule = mergedModules[chapterNum] || {};
+                            const enrollmentModule = e.modules[key] || {};
+
+                            // Smart merge: prefer non-empty values
+                            // For content (notes, quiz): parent content if student hasn't overridden
+                            // For progress: student progress takes priority
                             mergedModules[chapterNum] = {
-                                ...(mergedModules[chapterNum] || {}),
-                                ...e.modules[key]
+                                // Spread all enrollment data first (student progress)
+                                ...enrollmentModule,
+                                // Override with parent content if enrollment doesn't have it
+                                notes: enrollmentModule.notes || parentModule.notes,
+                                notesEasy: enrollmentModule.notesEasy || parentModule.notesEasy,
+                                notesVeryEasy: enrollmentModule.notesVeryEasy || parentModule.notesVeryEasy,
+                                quiz: (enrollmentModule.quiz && enrollmentModule.quiz.length > 0)
+                                    ? enrollmentModule.quiz
+                                    : parentModule.quiz,
                             };
                         });
                     }

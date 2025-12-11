@@ -32,6 +32,7 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
 
   const [viewState, setViewState] = useState<ViewState>(initialView);
   const [quizSessionId, setQuizSessionId] = useState(0); // Unique ID for forcing QuizView remount
+  const [quizKBIndex, setQuizKBIndex] = useState(0); // Track which KB section to show (cycles on retry)
   const [noteComplexity, setNoteComplexity] = useState<NoteComplexity>('NORMAL');
   const [alertState, setAlertState] = useState<{ isOpen: boolean; title: string; message: string; type: 'error' | 'info' | 'success' }>({
     isOpen: false,
@@ -193,11 +194,24 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
     loadNotes();
   }, [chapter, course.id, viewState, noteComplexity]); // Trigger when chapter, viewState OR complexity changes
 
-  // Helper to get random questions from pool
-  const getRandomQuestions = (pool: QuizQuestion[], count: number = 10): QuizQuestion[] => {
-    if (pool.length <= count) return pool;
-    const shuffled = [...pool].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, count);
+  // Helper to get sequential questions by KB section (not random)
+  // Questions are generated in KB order, so we split by estimated KB size and cycle
+  const getSequentialQuestions = (pool: QuizQuestion[], kbIndex: number, count: number = 10): QuizQuestion[] => {
+    if (pool.length <= count) return pool; // Return all if pool is small
+
+    // Estimate 3 KBs per module (typical UT module structure)
+    const estimatedKBCount = 3;
+    const questionsPerKB = Math.ceil(pool.length / estimatedKBCount);
+
+    // Calculate start index based on KB (cycle through)
+    const effectiveKBIndex = kbIndex % estimatedKBCount;
+    const startIdx = effectiveKBIndex * questionsPerKB;
+
+    // Get questions for this KB section
+    const kbQuestions = pool.slice(startIdx, startIdx + questionsPerKB);
+
+    // Return up to 'count' questions (in order, not shuffled)
+    return kbQuestions.slice(0, count);
   };
 
   // Handler to start quiz for current chapter
@@ -214,11 +228,12 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
     });
 
     if (pool && pool.length > 0) {
-      // Use existing pool, PICK NEW RANDOM SET each time this is clicked
-      const selectedQuestions = getRandomQuestions(pool, 10);
+      // Use existing pool, get questions from current KB section (cycles on retry)
+      const selectedQuestions = getSequentialQuestions(pool, quizKBIndex, 10);
       setActiveQuestions(selectedQuestions);
       setQuizState(resetState(selectedQuestions.length)); // Prepare state BEFORE viewState change
       setQuizSessionId(prev => prev + 1); // Force QuizView remount
+      setQuizKBIndex(prev => prev + 1); // Cycle to next KB section on next retry
       setViewState('QUIZ');
       return;
     }
@@ -246,9 +261,10 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
 
         // Save to Local State for future use
         onUpdateData(course.id, chapter, { quiz: bankQuestions });
-        const selectedQuestions = getRandomQuestions(bankQuestions, 10);
+        const selectedQuestions = getSequentialQuestions(bankQuestions, quizKBIndex, 10);
         setActiveQuestions(selectedQuestions);
         setQuizState(resetState(selectedQuestions.length)); // Prepare state
+        setQuizKBIndex(prev => prev + 1); // Cycle to next KB section on next retry
         setViewState('QUIZ');
         setIsLoadingQuiz(false);
         return;
@@ -287,11 +303,12 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
         });
       }
 
-      // 7. Set Active Questions
-      const selectedQuestions = getRandomQuestions(quizPool, 10);
+      // 7. Set Active Questions (sequential by KB)
+      const selectedQuestions = getSequentialQuestions(quizPool, quizKBIndex, 10);
       setActiveQuestions(selectedQuestions);
       setQuizState(resetState(selectedQuestions.length)); // Prepare state
       setQuizSessionId(prev => prev + 1); // Force QuizView remount
+      setQuizKBIndex(prev => prev + 1); // Cycle to next KB section on next retry
       setViewState('QUIZ');
 
     } catch (error) {

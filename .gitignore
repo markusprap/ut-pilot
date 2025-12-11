@@ -132,3 +132,7 @@ Thumbs.db
 # Project specific
 apps/web/dist
 apps/api/dist
+
+# SQL migrations (run manually in Supabase)
+*.sql
+migrations/

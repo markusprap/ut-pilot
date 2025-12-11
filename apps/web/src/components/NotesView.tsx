@@ -99,6 +99,7 @@ const NotesView: React.FC<NotesViewProps> = ({ content, chapter, isLoading, comp
 
     onSaveContent(newContent);
     setSelectedText(""); // Reset
+    setSelectionRect(null); // Hide floating toolbar
 
     // Clear selection
     if (window.getSelection()) {
@@ -111,6 +112,18 @@ const NotesView: React.FC<NotesViewProps> = ({ content, chapter, isLoading, comp
       message: "Highlight berhasil disimpan.",
       type: "success"
     });
+  };
+
+  // Calculate floating toolbar position
+  const getFloatingToolbarStyle = (): React.CSSProperties => {
+    if (!selectionRect) return { display: 'none' };
+
+    return {
+      position: 'fixed',
+      top: `${selectionRect.top - 45}px`, // 45px above selection
+      left: `${selectionRect.left + (selectionRect.width / 2) - 50}px`, // Center horizontally
+      zIndex: 9999,
+    };
   };
 
   return (
@@ -202,6 +215,23 @@ const NotesView: React.FC<NotesViewProps> = ({ content, chapter, isLoading, comp
           </>
         )}
       </div>
+
+      {/* Floating Stabilo Button - appears near text selection */}
+      {selectionRect && selectedText && (
+        <div
+          style={getFloatingToolbarStyle()}
+          className="animate-in fade-in zoom-in-95 duration-150"
+        >
+          <button
+            onClick={applyHighlight}
+            className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 px-4 py-2 rounded-lg shadow-lg font-medium text-sm transition-colors"
+            title="Stabilo teks yang dipilih"
+          >
+            <Zap className="w-4 h-4" />
+            Stabilo
+          </button>
+        </div>
+      )}
     </div>
   );
 };
