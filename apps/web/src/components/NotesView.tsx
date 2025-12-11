@@ -53,41 +53,20 @@ const NotesView: React.FC<NotesViewProps> = ({ content, chapter, isLoading, comp
   const validContent = typeof content === 'string' ? content : '';
   const isEmpty = !validContent || validContent.trim().length === 0;
 
-  const [selectionRect, setSelectionRect] = useState<DOMRect | null>(null);
-  const [selectedText, setSelectedText] = useState("");
-
-  // Use setTimeout to let the browser finalize the selection before we read it
-  const handleSelection = () => {
-    setTimeout(() => {
-      const selection = window.getSelection();
-      if (!selection || selection.isCollapsed || selection.toString().trim().length === 0) {
-        setSelectionRect(null);
-        setSelectedText("");
-        return;
-      }
-
-      const text = selection.toString().trim();
-      const range = selection.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
-
-      // Only update if we have valid rect
-      if (rect.width > 0 && rect.height > 0) {
-        setSelectionRect(rect);
-        setSelectedText(text);
-      }
-    }, 10); // Small delay to let browser finalize selection
-  };
-
   const applyHighlight = () => {
-    // If no stored selection, try to get current selection
-    let textToHighlight = selectedText;
-
-    if (!textToHighlight) {
-      const selection = window.getSelection();
-      if (selection && !selection.isCollapsed) {
-        textToHighlight = selection.toString().trim();
-      }
+    // Get current selection directly
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) {
+      setAlertState({
+        isOpen: true,
+        title: "Pilih Teks Dulu",
+        message: "Silakan blok/seleksi teks yang ingin diberi stabilo, lalu klik tombol ini.",
+        type: "info"
+      });
+      return;
     }
+
+    const textToHighlight = selection.toString().trim();
 
     if (!textToHighlight || !content || !onSaveContent) {
       setAlertState({
@@ -103,8 +82,6 @@ const NotesView: React.FC<NotesViewProps> = ({ content, chapter, isLoading, comp
     const newContent = content.replace(textToHighlight, `<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">${textToHighlight}</mark>`);
 
     onSaveContent(newContent);
-    setSelectedText(""); // Reset
-    setSelectionRect(null); // Hide floating toolbar
 
     // Clear selection
     if (window.getSelection()) {
@@ -121,16 +98,8 @@ const NotesView: React.FC<NotesViewProps> = ({ content, chapter, isLoading, comp
 
   // Remove highlight from selected text
   const removeHighlight = () => {
-    let textToUnhighlight = selectedText;
-
-    if (!textToUnhighlight) {
-      const selection = window.getSelection();
-      if (selection && !selection.isCollapsed) {
-        textToUnhighlight = selection.toString().trim();
-      }
-    }
-
-    if (!textToUnhighlight || !content || !onSaveContent) {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) {
       setAlertState({
         isOpen: true,
         title: "Pilih Teks Dulu",
@@ -140,7 +109,13 @@ const NotesView: React.FC<NotesViewProps> = ({ content, chapter, isLoading, comp
       return;
     }
 
-    // Remove mark tags around the selected text (handles the exact text match)
+    const textToUnhighlight = selection.toString().trim();
+
+    if (!textToUnhighlight || !content || !onSaveContent) {
+      return;
+    }
+
+    // Remove mark tags around the selected text
     const markPattern = `<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">${textToUnhighlight}</mark>`;
     const newContent = content.replace(markPattern, textToUnhighlight);
 
@@ -155,8 +130,6 @@ const NotesView: React.FC<NotesViewProps> = ({ content, chapter, isLoading, comp
     }
 
     onSaveContent(newContent);
-    setSelectedText("");
-    setSelectionRect(null);
 
     if (window.getSelection()) {
       window.getSelection()?.removeAllRanges();
@@ -170,23 +143,9 @@ const NotesView: React.FC<NotesViewProps> = ({ content, chapter, isLoading, comp
     });
   };
 
-  // Calculate floating toolbar position
-  const getFloatingToolbarStyle = (): React.CSSProperties => {
-    if (!selectionRect) return { display: 'none' };
-
-    return {
-      position: 'fixed',
-      top: `${selectionRect.top - 45}px`, // 45px above selection
-      left: `${selectionRect.left + (selectionRect.width / 2) - 50}px`, // Center horizontally
-      zIndex: 9999,
-    };
-  };
-
   return (
     <div
       className="max-w-4xl mx-auto px-4 pb-8 animate-in fade-in duration-500 relative"
-      onMouseUp={handleSelection} // Handle mouse selection
-      onTouchEnd={handleSelection} // Handle touch selection (basic)
     >
       <CustomAlert
         isOpen={alertState.isOpen}
@@ -271,34 +230,6 @@ const NotesView: React.FC<NotesViewProps> = ({ content, chapter, isLoading, comp
           </>
         )}
       </div>
-
-      {/* Floating Stabilo Toolbar - appears near text selection */}
-      {selectionRect && selectedText && (
-        <div
-          style={getFloatingToolbarStyle()}
-          className="animate-in fade-in zoom-in-95 duration-150 flex gap-1"
-          onMouseDown={(e) => e.preventDefault()} // Prevent selection from being cleared
-        >
-          <button
-            onClick={applyHighlight}
-            onMouseDown={(e) => e.preventDefault()}
-            className="flex items-center gap-1.5 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 px-3 py-2 rounded-l-lg shadow-lg font-medium text-sm transition-colors"
-            title="Beri Stabilo"
-          >
-            <Zap className="w-4 h-4" />
-            Stabilo
-          </button>
-          <button
-            onClick={removeHighlight}
-            onMouseDown={(e) => e.preventDefault()}
-            className="flex items-center gap-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-r-lg shadow-lg font-medium text-sm transition-colors"
-            title="Hapus Stabilo"
-          >
-            <AlertCircle className="w-4 h-4" />
-            Hapus
-          </button>
-        </div>
-      )}
     </div>
   );
 };
