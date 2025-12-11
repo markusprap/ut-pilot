@@ -33,6 +33,7 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
   const [viewState, setViewState] = useState<ViewState>(initialView);
   const [quizSessionId, setQuizSessionId] = useState(0); // Unique ID for forcing QuizView remount
   const [quizKBIndex, setQuizKBIndex] = useState(0); // Track which KB section to show (cycles on retry)
+  const lastSessionIdRendered = useRef(0); // Track if this is a continuation or fresh start
   const [noteComplexity, setNoteComplexity] = useState<NoteComplexity>('NORMAL');
   const [alertState, setAlertState] = useState<{ isOpen: boolean; title: string; message: string; type: 'error' | 'info' | 'success' }>({
     isOpen: false,
@@ -518,11 +519,15 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
                 isExamMode={false}
                 onRetry={handleStartQuiz}
 
-                // STATE PERSISTENCE PROPS
-                initialAnswers={quizState.answers.length > 0 ? quizState.answers : undefined}
-                initialIndex={quizState.currentIndex}
-                initialIsCompleted={quizState.isCompleted}
-                onProgress={(latestAnswers) => setQuizState(prev => ({ ...prev, answers: latestAnswers }))}
+                // STATE PERSISTENCE PROPS - Only pass if this is NOT a fresh session
+                // If quizSessionId > lastSessionIdRendered, it's a new session - don't pass stale props
+                initialAnswers={quizSessionId === lastSessionIdRendered.current && quizState.answers.length > 0 ? quizState.answers : undefined}
+                initialIndex={quizSessionId === lastSessionIdRendered.current ? quizState.currentIndex : 0}
+                initialIsCompleted={quizSessionId === lastSessionIdRendered.current ? quizState.isCompleted : false}
+                onProgress={(latestAnswers) => {
+                  setQuizState(prev => ({ ...prev, answers: latestAnswers }));
+                  lastSessionIdRendered.current = quizSessionId; // Mark this session as "rendered"
+                }}
                 onIndexChange={(idx) => setQuizState(prev => ({ ...prev, currentIndex: idx }))}
                 onComplete={(score, total, analysis, q, a) => {
                   // Keep persistent state as completed
