@@ -16,6 +16,7 @@ interface QuizViewProps {
     initialIsCompleted?: boolean;
     initialAnalysis?: string;
     onRetry?: () => void;
+    sessionId?: number; // Force reset when this changes
     canAnalyze?: boolean; // NEW: Control AI Analysis permission
     onProgress?: (answers: number[]) => void; // NEW: Save progress callback
     initialIndex?: number; // NEW: Start from specific question
@@ -37,13 +38,31 @@ const QuizView: React.FC<QuizViewProps> = ({
     onProgress,
     initialIndex = 0, // Default to 0
     onIndexChange,
-    courseCode
+    courseCode,
+    sessionId = 0
 }) => {
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
     const [answers, setAnswers] = useState<number[]>(initialAnswers || new Array(questions.length).fill(-1));
     const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({}); // NEW: Local image cache
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+
+    // FORCE RESET when sessionId changes (for retry functionality)
+    const prevSessionId = useRef(sessionId);
+    useEffect(() => {
+        if (sessionId !== prevSessionId.current) {
+            // Session changed - force full reset
+            setCurrentIndex(0);
+            setAnswers(new Array(questions.length).fill(-1));
+            setScore(0);
+            setIsCompleted(false);
+            setShowExplanation(false);
+            setSelectedOption(null);
+            setAnalysis(null);
+            setGeneratedImages({});
+            prevSessionId.current = sessionId;
+        }
+    }, [sessionId, questions.length]);
 
     // Sync Progress (Answers)
     useEffect(() => {

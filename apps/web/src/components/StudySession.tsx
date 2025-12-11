@@ -529,6 +529,7 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
                   setQuizState(prev => ({ ...prev, isCompleted: true, answers: a }));
                 }}
                 courseCode={course.code}
+                sessionId={quizSessionId}
               />
             ) : (
               <div className="flex flex-col items-center justify-center min-h-[400px] animate-in fade-in">
