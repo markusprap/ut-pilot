@@ -114,6 +114,57 @@ const NotesView: React.FC<NotesViewProps> = ({ content, chapter, isLoading, comp
     });
   };
 
+  // Remove highlight from selected text
+  const removeHighlight = () => {
+    let textToUnhighlight = selectedText;
+
+    if (!textToUnhighlight) {
+      const selection = window.getSelection();
+      if (selection && !selection.isCollapsed) {
+        textToUnhighlight = selection.toString().trim();
+      }
+    }
+
+    if (!textToUnhighlight || !content || !onSaveContent) {
+      setAlertState({
+        isOpen: true,
+        title: "Pilih Teks Dulu",
+        message: "Silakan blok/seleksi teks yang di-stabilo untuk menghapus efeknya.",
+        type: "info"
+      });
+      return;
+    }
+
+    // Remove mark tags around the selected text (handles the exact text match)
+    const markPattern = `<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">${textToUnhighlight}</mark>`;
+    const newContent = content.replace(markPattern, textToUnhighlight);
+
+    if (newContent === content) {
+      setAlertState({
+        isOpen: true,
+        title: "Tidak Ada Stabilo",
+        message: "Teks yang dipilih tidak memiliki efek stabilo.",
+        type: "info"
+      });
+      return;
+    }
+
+    onSaveContent(newContent);
+    setSelectedText("");
+    setSelectionRect(null);
+
+    if (window.getSelection()) {
+      window.getSelection()?.removeAllRanges();
+    }
+
+    setAlertState({
+      isOpen: true,
+      title: "Stabilo Dihapus",
+      message: "Highlight berhasil dihapus.",
+      type: "success"
+    });
+  };
+
   // Calculate floating toolbar position
   const getFloatingToolbarStyle = (): React.CSSProperties => {
     if (!selectionRect) return { display: 'none' };
@@ -216,21 +267,30 @@ const NotesView: React.FC<NotesViewProps> = ({ content, chapter, isLoading, comp
         )}
       </div>
 
-      {/* Floating Stabilo Button - appears near text selection */}
+      {/* Floating Stabilo Toolbar - appears near text selection */}
       {selectionRect && selectedText && (
         <div
           style={getFloatingToolbarStyle()}
-          className="animate-in fade-in zoom-in-95 duration-150"
+          className="animate-in fade-in zoom-in-95 duration-150 flex gap-1"
           onMouseDown={(e) => e.preventDefault()} // Prevent selection from being cleared
         >
           <button
             onClick={applyHighlight}
-            onMouseDown={(e) => e.preventDefault()} // Double protection
-            className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 px-4 py-2 rounded-lg shadow-lg font-medium text-sm transition-colors"
-            title="Stabilo teks yang dipilih"
+            onMouseDown={(e) => e.preventDefault()}
+            className="flex items-center gap-1.5 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 px-3 py-2 rounded-l-lg shadow-lg font-medium text-sm transition-colors"
+            title="Beri Stabilo"
           >
             <Zap className="w-4 h-4" />
             Stabilo
+          </button>
+          <button
+            onClick={removeHighlight}
+            onMouseDown={(e) => e.preventDefault()}
+            className="flex items-center gap-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-r-lg shadow-lg font-medium text-sm transition-colors"
+            title="Hapus Stabilo"
+          >
+            <AlertCircle className="w-4 h-4" />
+            Hapus
           </button>
         </div>
       )}
