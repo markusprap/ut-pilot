@@ -56,21 +56,26 @@ const NotesView: React.FC<NotesViewProps> = ({ content, chapter, isLoading, comp
   const [selectionRect, setSelectionRect] = useState<DOMRect | null>(null);
   const [selectedText, setSelectedText] = useState("");
 
+  // Use setTimeout to let the browser finalize the selection before we read it
   const handleSelection = () => {
-    const selection = window.getSelection();
-    if (!selection || selection.isCollapsed) {
-      setSelectionRect(null);
-      return;
-    }
-    const text = selection.toString().trim();
-    if (text.length > 0) {
+    setTimeout(() => {
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed || selection.toString().trim().length === 0) {
+        setSelectionRect(null);
+        setSelectedText("");
+        return;
+      }
+
+      const text = selection.toString().trim();
       const range = selection.getRangeAt(0);
       const rect = range.getBoundingClientRect();
-      setSelectionRect(rect);
-      setSelectedText(text);
-    } else {
-      setSelectionRect(null);
-    }
+
+      // Only update if we have valid rect
+      if (rect.width > 0 && rect.height > 0) {
+        setSelectionRect(rect);
+        setSelectedText(text);
+      }
+    }, 10); // Small delay to let browser finalize selection
   };
 
   const applyHighlight = () => {
