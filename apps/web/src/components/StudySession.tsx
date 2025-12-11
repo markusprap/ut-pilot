@@ -195,24 +195,11 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
     loadNotes();
   }, [chapter, course.id, viewState, noteComplexity]); // Trigger when chapter, viewState OR complexity changes
 
-  // Helper to get sequential questions by KB section (not random)
-  // Questions are generated in KB order, so we split by estimated KB size and cycle
-  const getSequentialQuestions = (pool: QuizQuestion[], kbIndex: number, count: number = 10): QuizQuestion[] => {
-    if (pool.length <= count) return pool; // Return all if pool is small
 
-    // Estimate 3 KBs per module (typical UT module structure)
-    const estimatedKBCount = 3;
-    const questionsPerKB = Math.ceil(pool.length / estimatedKBCount);
-
-    // Calculate start index based on KB (cycle through)
-    const effectiveKBIndex = kbIndex % estimatedKBCount;
-    const startIdx = effectiveKBIndex * questionsPerKB;
-
-    // Get questions for this KB section
-    const kbQuestions = pool.slice(startIdx, startIdx + questionsPerKB);
-
-    // Return up to 'count' questions (in order, not shuffled)
-    return kbQuestions.slice(0, count);
+  // Helper: Return all questions from pool (no more limit)
+  // Questions are already ordered sequentially by KB from generation
+  const getAllQuestions = (pool: QuizQuestion[]): QuizQuestion[] => {
+    return pool; // Return all questions - no limit
   };
 
   // Handler to start quiz for current chapter
@@ -229,8 +216,8 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
     });
 
     if (pool && pool.length > 0) {
-      // Use existing pool, get questions from current KB section (cycles on retry)
-      const selectedQuestions = getSequentialQuestions(pool, quizKBIndex, 10);
+      // Use existing pool, get ALL questions (no limit)
+      const selectedQuestions = getAllQuestions(pool);
       setActiveQuestions(selectedQuestions);
       setQuizState(resetState(selectedQuestions.length)); // Prepare state BEFORE viewState change
       setQuizSessionId(prev => prev + 1); // Force QuizView remount
@@ -262,7 +249,7 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
 
         // Save to Local State for future use
         onUpdateData(course.id, chapter, { quiz: bankQuestions });
-        const selectedQuestions = getSequentialQuestions(bankQuestions, quizKBIndex, 10);
+        const selectedQuestions = getAllQuestions(bankQuestions);
         setActiveQuestions(selectedQuestions);
         setQuizState(resetState(selectedQuestions.length)); // Prepare state
         setQuizKBIndex(prev => prev + 1); // Cycle to next KB section on next retry
@@ -304,8 +291,8 @@ const StudySession: React.FC<StudySessionProps> = ({ course, initialChapter, ini
         });
       }
 
-      // 7. Set Active Questions (sequential by KB)
-      const selectedQuestions = getSequentialQuestions(quizPool, quizKBIndex, 10);
+      // 7. Set Active Questions (ALL questions from pool)
+      const selectedQuestions = getAllQuestions(quizPool);
       setActiveQuestions(selectedQuestions);
       setQuizState(resetState(selectedQuestions.length)); // Prepare state
       setQuizSessionId(prev => prev + 1); // Force QuizView remount

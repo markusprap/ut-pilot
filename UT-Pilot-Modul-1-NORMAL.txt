@@ -1,0 +1,59 @@
+# Modul 1: Prinsip Dasar Penyajian Data
+
+## Ringkasan Inti
+Modul ini membahas prinsip-prinsip dasar penyajian data, yang merupakan langkah krusial dalam analisis data deskriptif. <mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Penyajian data bertujuan untuk memudahkan pemahaman dan interpretasi informasi yang terkandung dalam sekumpulan data, baik data numerik maupun teks</mark>. Materi diawali dengan pengenalan ukuran pemusatan data (rata-rata, median, modus) dan ukuran penyebaran data (jangkauan, ragam, simpangan baku, koefisien keragaman) untuk memahami karakteristik dasar data. Selanjutnya, modul ini menguraikan berbagai bentuk penyajian data melalui tabel dan grafik, menjelaskan kapan dan bagaimana masing-masing bentuk digunakan secara efektif. Bagian akhir modul memfokuskan pada teknik membandingkan kelompok data menggunakan ukuran-ukuran statistik yang telah dibahas, khususnya koefisien keragaman untuk menilai homogenitas atau heterogenitas sebaran data antar kelompok.
+
+### Kegiatan Belajar 1: Ukuran Pemusatan dan Penyebaran Data
+
+Kegiatan belajar ini menjelaskan dua kategori ukuran penting dalam statistika deskriptif:
+
+*   **<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Ukuran Pemusatan Data</mark>**: <mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Nilai tunggal yang menggambarkan letak sentral atau nilai tipikal dari sekumpulan data</mark>.
+    *   **<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Rata-rata (Mean)</mark>**: <mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Jumlah semua nilai data dibagi dengan banyaknya data</mark>.
+        $$ \bar{x} = \frac{\sum_{i=1}^{n} x_i}{n} $$
+        <mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Sensitif terhadap pencilan (outlier)</mark>.
+    *   **<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Median</mark>**: <mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Nilai tengah dari data yang telah diurutkan</mark>.
+        *   Untuk $n$ ganjil: $Q_2 = X_{(n+1)/2}$
+        *   Untuk $n$ genap: $Q_2 = \frac{X_{n/2} + X_{(n/2)+1}}{2}$
+        <mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Tidak dipengaruhi pencilan</mark>.
+    *   **<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Modus</mark>**: <mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Nilai yang paling sering muncul dalam sekumpulan data. Dapat tidak ada, tunggal, atau majemuk</mark>.
+*   **<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Ukuran Penyebaran Data</mark>**: <mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Nilai yang menggambarkan seberapa jauh amatan-amatan menyebar dari rata-ratanya atau antar amatan</mark>.
+    *   **<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Jangkauan (Range)</mark>**: <mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Selisih antara nilai maksimum dan minimum data</mark>. $R = X_{maks} - X_{min}$. Hanya bergantung pada dua amatan ekstrem.
+    *   **<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Ragam (Variance)</mark>**: <mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Rata-rata kuadrat selisih antara setiap amatan dengan rata-rata</mark>.
+        *   Ragam Populasi: $ \sigma^2 = \frac{\sum_{i=1}^{N} (x_i - \mu)^2}{N} $
+        *   Ragam Sampel: $ s^2 = \frac{\sum_{i=1}^{n} (x_i - \bar{x})^2}{n-1} $
+    *   **<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Simpangan Baku (Standard Deviation)</mark>**: <mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Akar kuadrat dari ragam. Mengukur penyebaran data dalam satuan asli</mark>.
+        *   Simpangan Baku Populasi: $ \sigma = \sqrt{\frac{\sum_{i=1}^{N} (x_i - \mu)^2}{N}} $
+        *   Simpangan Baku Sampel: $ s = \sqrt{\frac{\sum_{i=1}^{n} (x_i - \bar{x})^2}{n-1}} $
+    *   **<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Koefisien Keragaman (Coefficient of Variation - CV)</mark>**: <mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Ukuran relatif simpangan baku terhadap rata-rata, dinyatakan dalam persentase.</mark>
+        $$ CV = \frac{s}{\bar{x}} \times 100\% $$
+        Berguna untuk membandingkan keragaman dua atau lebih variabel.
+
+### Kegiatan Belajar 2: Bentuk-bentuk Penyajian Data
+
+Penyajian data dapat dilakukan dalam dua bentuk utama: tabel dan grafik, serta peta untuk data spasial.
+
+*   **Tabel**: Penyajian data dalam baris dan kolom yang memberikan informasi lebih lengkap.
+    *   **Tabel Satu Arah (One-Way Table)**: Menyajikan satu variabel atau karakteristik.
+    *   **Tabulasi Silang (Cross-Tabulation/Two-Way Table)**: Merangkum data dari dua atau lebih variabel, sering digunakan untuk variabel kualitatif.
+    *   **Tabel Frekuensi**: Ringkasan data yang menunjukkan frekuensi atau banyaknya item/objek pada setiap kelas. Langkah-langkah pembuatannya meliputi penentuan *range*, banyaknya kelas, lebar interval, dan frekuensi kumulatif/relatif.
+*   **Grafik**: Penyajian data secara visual untuk menunjukkan pola, tren, atau perbandingan.
+    *   **<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Grafik Garis (Line Chart)</mark>**: <mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Menggambarkan perkembangan data sepanjang waktu atau variabel kontinyu.</mark>
+    *   **<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Batang (Bar Graph)</mark>**: <mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Memvisualisasikan distribusi frekuensi, persentase, atau proporsi data kualitatif.</mark>
+    *   **<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Plot Pencaran (Scatter Plot)</mark>**: <mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Menunjukkan hubungan antara dua variabel kuantitatif</mark>.
+    *   **<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Lingkaran (Pie Chart)</mark>**: <mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Membandingkan proporsi atau persentase dari keseluruhan data.</mark>
+    *   **<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Ogive</mark>**: <mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Grafik yang menyajikan nilai kumulatif, menunjukkan frekuensi kumulatif, relatif, atau persentase kumulatif.</mark>
+*   **Peta**: Penyajian data spasial yang informatif dan estetis.
+    *   **Peta Tematik**: Menyajikan data yang berkaitan dengan tema tertentu (contoh: kepadatan penduduk, distribusi penyebaran penyakit).
+    *   Variabel visual pada peta (titik, garis, area, warna, ukuran) digunakan untuk memperkuat persepsi pembaca terhadap fenomena yang digambarkan.
+
+### Kegiatan Belajar 3: Membandingkan Kelompok Data
+
+Kegiatan ini membahas pentingnya membandingkan dua atau lebih kelompok data.
+
+*   Ukuran pemusatan dan penyebaran data digunakan untuk membandingkan karakteristik kelompok.
+*   Perbandingan kelompok data memerlukan pertimbangan pada kondisi sebaran data (homogen atau heterogen) dan skala pengukuran data.
+*   **Koefisien Keragaman (KK)** sangat berguna untuk membandingkan sebaran data relatif antarkelompok. Kelompok dengan nilai KK yang lebih kecil cenderung lebih homogen (merata), sementara nilai KK yang lebih besar menunjukkan heterogenitas (sebaran yang bervariasi).
+*   Analisis perbandingan memungkinkan peneliti membuat keputusan yang lebih tepat berdasarkan karakteristik data dari masing-masing kelompok.
+
+## Rangkuman
+<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-1 text-slate-900 dark:text-white">Modul ini mengintroduksi konsep fundamental</mark> penyajian data dalam statistika deskriptif. Mahasiswa mempelajari ukuran pemusatan data seperti rata-rata, median, dan modus untuk mengidentifikasi nilai tipikal, serta ukuran penyebaran data seperti jangkauan, ragam, simpangan baku, dan koefisien keragaman untuk memahami variabilitas data. Berbagai bentuk penyajian data melalui tabel (tabel frekuensi, tabulasi silang) dan grafik (grafik garis, batang, pencaran, lingkaran, ogive) dijelaskan sebagai alat untuk memvisualisasikan data secara efektif. Penekanan juga diberikan pada penggunaan koefisien keragaman sebagai alat kunci untuk membandingkan homogenitas atau heterogenitas sebaran antar kelompok data, memungkinkan analisis yang lebih mendalam dan pengambilan keputusan yang berbasis data.

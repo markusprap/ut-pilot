@@ -221,9 +221,11 @@ const NotesView: React.FC<NotesViewProps> = ({ content, chapter, isLoading, comp
         <div
           style={getFloatingToolbarStyle()}
           className="animate-in fade-in zoom-in-95 duration-150"
+          onMouseDown={(e) => e.preventDefault()} // Prevent selection from being cleared
         >
           <button
             onClick={applyHighlight}
+            onMouseDown={(e) => e.preventDefault()} // Double protection
             className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 px-4 py-2 rounded-lg shadow-lg font-medium text-sm transition-colors"
             title="Stabilo teks yang dipilih"
           >
