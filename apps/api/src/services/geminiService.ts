@@ -452,37 +452,42 @@ export const generateContentFromUri = async (
         } else if (subType === 'QUIZ') {
             prompt = `TUGAS: Ekstrak SEMUA Soal "Tes Formatif" dari MODUL ${chapterNumber} (Scan KB 1 s/d Terakhir).
 
-          ⚠️ MASALAH KRITIS YANG HARUS DIATASI:
-          - Modul ini memiliki BEBERAPA Kegiatan Belajar (KB). Contoh: KB 1, KB 2, KB 3.
-          - Setiap KB punya Tes Formatif sendiri (biasanya @ 10 soal).
-          - Seringkali AI hanya mengambil Tes Formatif 1 dan BERHENTI. INI SALAH!
-          - ANDA HARUS SCAN SAMPAI HALAMAN TERAKHIR MODUL INI UNTUK MENEMUKAN SEMUA TES FORMATIF.
+          ⚠️ MASALAH KRITIS (SOLUSI WAJIB):
+          - Modul ini memiliki BEBERAPA "Kegiatan Belajar" (KB).
+          - AI sering BERHENTI setelah KB 1.
+          - SOLUSI: Output harus berupa OBJECT dengan array "sections" yang memisahkan setiap KB.
 
-          INSTRUKSI LANGKAH DEMI LANGKAH:
-          1.  **STEP 1: IDENTIFIKASI STRUKTUR**:
-              - Cari "Kegiatan Belajar 1" -> Temukan "Tes Formatif 1" di akhirnya.
-              - Cari "Kegiatan Belajar 2" -> Temukan "Tes Formatif 2" di akhirnya.
-              - Lanjutkan sampai tidak ada lagi Kegiatan Belajar.
-          
-          2.  **STEP 2: EKSTRAKSI PER KB**:
-              - Ekstrak seluruh soal dari Tes Formatif 1.
-              - Ekstrak seluruh soal dari Tes Formatif 2.
-              - ...dst.
-              - GABUNGKAN SEMUANYA menjadi satu list panjang (total target: 30-50 soal).
-          
-          3.  **STEP 3: CROSS-CHECK & EXPLANATION**:
-              - **Index Jawaban Benar**: GUNAKAN KUNCI JAWABAN MODUL (Wajib!).
-              - **Penjelasan**: JANGAN hanya tulis "Sesuai kunci jawaban". 
-              - **TUGAS**: Analisis materi di modul (Cari KB dan Halamannya) untuk menjelaskan MENGAPA kunci jawaban itu benar.
-              - Contoh: "Jawaban B benar karena [Penjelasan Konsep]. Hal ini sesuai dengan materi KB 2 halaman 2.15."
+          INSTRUKSI:
+          1.  **Iterasi KB**: Cari "Kegiatan Belajar 1", ekstrak soalnya. Cari "Kegiatan Belajar 2", ekstrak soalnya. Dst.
+          2.  **Kunci Jawaban**: Gunakan Kunci Jawaban Modul untuk menentukan \`correct_index\` (WAJIB!).
+          3.  **Penjelasan**: Analisis materi KB halaman terkait untuk menjelaskan konsep jawaban.
 
-          FORMAT OUTPUT (JSON Array):
-          - \`question\`: Teks soal.
-          - \`options\`: [A, B, C, D].
-          - \`correct_index\`: 0-3 (WAJIB SESUAI KUNCI JAWABAN MODUL).
-          - \`explanation\`: "Penjelasan konsep lengkap + Referensi Lokasi di Modul (KB/Hal)".
+          FORMAT OUTPUT (JSON Object):
+          {
+            "sections": [
+              {
+                "kb_name": "KB 1: [Judul KB]",
+                "questions": [
+                  {
+                    "id": 1,
+                    "question": "...",
+                    "options": ["A", "B", "C", "D"],
+                    "correct_index": 0,
+                    "explanation": "...",
+                    "image_prompt": "..."
+                  },
+                  ...
+                ]
+              },
+              {
+                "kb_name": "KB 2: [Judul KB]",
+                "questions": [...]
+              }
+            ]
+          }
 
           JANGAN BERHENTI SAMPAI SEMUA KB TER-SCAN!`;
+            isJsonMode = true;
             isJsonMode = true;
         } else if (subType === 'TOC') {
             prompt = `TUGAS: Analisis Struktur Daftar Isi (Table of Contents) dari Modul ini.
@@ -557,8 +562,44 @@ export const generateContentFromUri = async (
                         required: ["chapter", "title"]
                     }
                 };
+            } else if (subType === 'QUIZ') {
+                // QUIZ Schema: Structured Object with Sections to force iteration
+                requestConfig.config.responseSchema = {
+                    type: Type.OBJECT,
+                    properties: {
+                        sections: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    kb_name: { type: Type.STRING },
+                                    questions: {
+                                        type: Type.ARRAY,
+                                        items: {
+                                            type: Type.OBJECT,
+                                            properties: {
+                                                id: { type: Type.INTEGER },
+                                                question: { type: Type.STRING },
+                                                options: {
+                                                    type: Type.ARRAY,
+                                                    items: { type: Type.STRING }
+                                                },
+                                                correct_index: { type: Type.INTEGER },
+                                                explanation: { type: Type.STRING },
+                                                image_prompt: { type: Type.STRING }
+                                            },
+                                            required: ["id", "question", "options", "correct_index", "explanation"]
+                                        }
+                                    }
+                                },
+                                required: ["kb_name", "questions"]
+                            }
+                        }
+                    },
+                    required: ["sections"]
+                };
             } else {
-                // Default Quiz Schema (for QUIZ and EXAM_SIMULATION)
+                // Default Array Schema (for EXAM_SIMULATION)
                 requestConfig.config.responseSchema = {
                     type: Type.ARRAY,
                     items: {
@@ -591,7 +632,22 @@ export const generateContentFromUri = async (
 
         if (isJsonMode) {
             const cleanJson = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-            return JSON.parse(cleanJson) as QuizQuestion[];
+            const parsed = JSON.parse(cleanJson);
+
+            // Handle New Section-based Logic for QUIZ
+            if (!Array.isArray(parsed) && parsed.sections) {
+                // Flatten sections into single array
+                const allQuestions: QuizQuestion[] = [];
+                parsed.sections.forEach((section: any) => {
+                    if (section.questions && Array.isArray(section.questions)) {
+                        allQuestions.push(...section.questions);
+                    }
+                });
+                return allQuestions;
+            }
+
+            // Fallback for Exam / Legacy
+            return parsed as QuizQuestion[];
         }
 
         return textResponse.replace(/^```markdown/g, '').replace(/^```/g, '').replace(/```$/g, '').trim();
