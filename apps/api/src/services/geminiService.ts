@@ -450,26 +450,38 @@ export const generateContentFromUri = async (
           - Bahasa Formal Akademik.`;
             isJsonMode = false;
         } else if (subType === 'QUIZ') {
-            prompt = `TUGAS: Ekstrak SEMUA Soal "Tes Formatif" dari MODUL ${chapterNumber} secara LENGKAP.
+            prompt = `TUGAS: Ekstrak SEMUA Soal "Tes Formatif" dari MODUL ${chapterNumber} (Scan KB 1 s/d Terakhir).
 
-          INSTRUKSI UTAMA (WAJIB DIPATUHI):
-          1.  **CARI KUNCI JAWABAN**: Scan halaman akhir modul/bab ini untuk menemukan bagian "KUNCI JAWABAN TES FORMATIF".
-          2.  **GUNAKAN KUNCI MODUL**: JANGAN ANALISIS SENDIRI. Gunakan jawaban dari Kunci Jawaban modul sebagai *source of truth*. Jawaban AI sering salah, jadi prioritaskan kunci jawaban modul!
-          3.  **FILTER**: Jika soal memiliki kunci jawaban di modul, gunakan itu. Jika TIDAK ADA kunci jawaban di modul, baru lakukan analisis mandiri (tapi beri catatan di explanation "Jawaban analisis mandiri (kunci tidak ditemukan)").
-          4.  **JUMLAH SOAL**: Scan SEMUA Kegiatan Belajar (KB 1, KB 2, KB 3, dst). Ekstrak SEMUA soal. Target: 30-40+ soal per modul (akumulasi dari semua KB). JANGAN BERHENTI DI 10 SOAL!
+          ⚠️ MASALAH KRITIS YANG HARUS DIATASI:
+          - Modul ini memiliki BEBERAPA Kegiatan Belajar (KB). Contoh: KB 1, KB 2, KB 3.
+          - Setiap KB punya Tes Formatif sendiri (biasanya @ 10 soal).
+          - Seringkali AI hanya mengambil Tes Formatif 1 dan BERHENTI. INI SALAH!
+          - ANDA HARUS SCAN SAMPAI HALAMAN TERAKHIR MODUL INI UNTUK MENEMUKAN SEMUA TES FORMATIF.
+
+          INSTRUKSI LANGKAH DEMI LANGKAH:
+          1.  **STEP 1: IDENTIFIKASI STRUKTUR**:
+              - Cari "Kegiatan Belajar 1" -> Temukan "Tes Formatif 1" di akhirnya.
+              - Cari "Kegiatan Belajar 2" -> Temukan "Tes Formatif 2" di akhirnya.
+              - Lanjutkan sampai tidak ada lagi Kegiatan Belajar.
+          
+          2.  **STEP 2: EKSTRAKSI PER KB**:
+              - Ekstrak seluruh soal dari Tes Formatif 1.
+              - Ekstrak seluruh soal dari Tes Formatif 2.
+              - ...dst.
+              - GABUNGKAN SEMUANYA menjadi satu list panjang (total target: 30-50 soal).
+          
+          3.  **STEP 3: CROSS-CHECK JAWAABAN**:
+              - Cari KUNCI JAWABAN di akhir Modul.
+              - Cocokkan jawaban setiap soal dengan Kunci Jawaban tersebut.
+              - Penjelasan harus berbunyi: "Sesuai Kunci Jawaban Tes Formatif X nomor Y..."
 
           FORMAT OUTPUT (JSON Array):
-          - \`question\`: Teks soal lengkap (Markdown code block jika ada kode).
-          - \`options\`: Array string [A, B, C, D, E].
-          - \`correct_index\`: Index jawaban benar (0-4) SESUAI KUNCI JAWABAN MODUL.
-          - \`explanation\`:
-              - JIKA ADA KUNCI: "Sesuai Kunci Jawaban Tes Formatif Modul (KB X). Penjelasan: [Penjelasan singkat kenapa itu benar]".
-              - JIKA TIDAK ADA KUNCI: "Analisis Mandiri: [Penjelasan logika jawaban]".
+          - \`question\`: Teks soal.
+          - \`options\`: [A, B, C, D].
+          - \`correct_index\`: 0-3 (MENGACU KE KUNCI JAWABAN MODUL).
+          - \`explanation\`: "Jawaban: [Huruf] | Sumber: Kunci Jawaban Modul [KB X]".
 
-          ⚠️ PERINGATAN KONSISTENSI:
-          - Pastikan \`correct_index\` menunjuk ke opsi yang SAMA dengan Kunci Jawaban.
-          - Hati-hati dengan soal "KECUALI/BUKAN/TIDAK".
-          - JANGAN KURANGI JUMLAH SOAL. Ambil semuanya.`;
+          JANGAN BERHENTI SAMPAI SEMUA KB TER-SCAN!`;
             isJsonMode = true;
         } else if (subType === 'TOC') {
             prompt = `TUGAS: Analisis Struktur Daftar Isi (Table of Contents) dari Modul ini.
