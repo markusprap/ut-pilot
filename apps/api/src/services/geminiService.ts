@@ -450,30 +450,26 @@ export const generateContentFromUri = async (
           - Bahasa Formal Akademik.`;
             isJsonMode = false;
         } else if (subType === 'QUIZ') {
-            prompt = `TUGAS: Ekstrak SEMUA Soal dari "Tes Formatif" di MODUL/BAB KE-${chapterNumber}.
+            prompt = `TUGAS: Ekstrak SEMUA Soal "Tes Formatif" dari MODUL ${chapterNumber} secara LENGKAP.
 
-          INSTRUKSI DETAIL:
-          1. SCAN seluruh Modul ${chapterNumber} dan cari SETIAP bagian "Tes Formatif" dari masing-masing Kegiatan Belajar (KB).
-          2. EKSTRAK SEMUA SOAL dari setiap Tes Formatif yang ditemukan (biasanya 10 soal per KB, tapi jumlahnya bisa bervariasi).
-          3. Jika ada 3 KB dengan masing-masing 10 soal = 30 soal total. Sesuaikan dengan jumlah KB yang ada di modul ini.
-          4. Untuk SETIAP soal yang diekstrak:
-             - Tulis ulang soal dengan jelas. JIKA SOAL MENGANDUNG KODE, FORMAT SEBAGAI MARKDOWN CODE BLOCK.
-             - Tulis semua opsi jawaban (A, B, C, D, E jika ada). JIKA OPSI ADALAH KODE, GUNAKAN INLINE CODE (\`code\`) ATAU BLOCK.
-             - ANALISIS SENDIRI jawaban yang benar berdasarkan materi modul (JANGAN PERCAYA kunci jawaban modul karena sering SALAH)
-             - Berikan penjelasan mengapa jawaban tersebut benar, berdasarkan materi di modul
-          
-          ⚠️ ATURAN KRITIS (WAJIB DIPATUHI):
-          - **CROSS-CHECK**: Setelah menulis 'explanation', PERIKSA ULANG apakah 'correct_index' sesuai dengan logika di explanation!
-          - **CONTOH KESALAHAN YANG HARUS DIHINDARI**: Jika explanation menyatakan "opsi A adalah jawaban yang benar karena...", maka 'correct_index' HARUS 0 (index untuk opsi A).
-          - **JANGAN COPY KUNCI JAWABAN MODUL**: Kunci jawaban di modul sering SALAH! Analisis ulang berdasarkan materi.
-          - Jika soal memiliki kata "TIDAK", "BUKAN", atau "KECUALI", hati-hati! Jawaban benar adalah opsi yang BERBEDA dari yang lain.
-          - Prioritas utama adalah Tes Formatif, bukan Latihan atau soal lain
-          - Jika soal memerlukan gambar/grafik dari modul, deskripsikan gambar tersebut di field 'image_prompt'
-          - PASTIKAN CODE SNIPPET (jika ada) terformat rapi dengan \`\`\`language.
-          
-          FORMAT OUTPUT: JSON Array berisi SEMUA objek soal yang ditemukan.
-          Field 'explanation' WAJIB berisi pembahasan singkat & jelas kenapa jawaban itu benar, sertakan sumber "Berdasarkan materi KB X".
-          Field 'image_prompt' (OPSIONAL): Deskripsi visual jika soal membutuhkan gambar.`;
+          INSTRUKSI UTAMA (WAJIB DIPATUHI):
+          1.  **CARI KUNCI JAWABAN**: Scan halaman akhir modul/bab ini untuk menemukan bagian "KUNCI JAWABAN TES FORMATIF".
+          2.  **GUNAKAN KUNCI MODUL**: JANGAN ANALISIS SENDIRI. Gunakan jawaban dari Kunci Jawaban modul sebagai *source of truth*. Jawaban AI sering salah, jadi prioritaskan kunci jawaban modul!
+          3.  **FILTER**: Jika soal memiliki kunci jawaban di modul, gunakan itu. Jika TIDAK ADA kunci jawaban di modul, baru lakukan analisis mandiri (tapi beri catatan di explanation "Jawaban analisis mandiri (kunci tidak ditemukan)").
+          4.  **JUMLAH SOAL**: Scan SEMUA Kegiatan Belajar (KB 1, KB 2, KB 3, dst). Ekstrak SEMUA soal. Target: 30-40+ soal per modul (akumulasi dari semua KB). JANGAN BERHENTI DI 10 SOAL!
+
+          FORMAT OUTPUT (JSON Array):
+          - \`question\`: Teks soal lengkap (Markdown code block jika ada kode).
+          - \`options\`: Array string [A, B, C, D, E].
+          - \`correct_index\`: Index jawaban benar (0-4) SESUAI KUNCI JAWABAN MODUL.
+          - \`explanation\`:
+              - JIKA ADA KUNCI: "Sesuai Kunci Jawaban Tes Formatif Modul (KB X). Penjelasan: [Penjelasan singkat kenapa itu benar]".
+              - JIKA TIDAK ADA KUNCI: "Analisis Mandiri: [Penjelasan logika jawaban]".
+
+          ⚠️ PERINGATAN KONSISTENSI:
+          - Pastikan \`correct_index\` menunjuk ke opsi yang SAMA dengan Kunci Jawaban.
+          - Hati-hati dengan soal "KECUALI/BUKAN/TIDAK".
+          - JANGAN KURANGI JUMLAH SOAL. Ambil semuanya.`;
             isJsonMode = true;
         } else if (subType === 'TOC') {
             prompt = `TUGAS: Analisis Struktur Daftar Isi (Table of Contents) dari Modul ini.
