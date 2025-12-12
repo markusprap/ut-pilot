@@ -461,6 +461,13 @@ export const generateContentFromUri = async (
           1.  **Iterasi KB**: Cari "Kegiatan Belajar 1", ekstrak soalnya. Cari "Kegiatan Belajar 2", ekstrak soalnya. Dst.
           2.  **Kunci Jawaban**: Gunakan Kunci Jawaban Modul untuk menentukan \`correct_index\` (WAJIB!).
           3.  **Penjelasan**: Analisis materi KB halaman terkait untuk menjelaskan konsep jawaban.
+          4.  **STIMULUS SOAL**: Jika soal memiliki "Cerita / Tabel / Data / Kode" sebelum pertanyaan:
+              - GABUNGKAN teks stimulus tersebut ke dalam field \`question\`.
+              - Gunakan format Markdown untuk memisahkan stimulus (misal dengan blockquote \`> ...\` atau code block \`\`\`...\`\`\`).
+              - JANGAN masukkan stimulus ke dalam \`options\`. Field \`options\` HANYA boleh berisi pilihan jawaban A, B, C, D.
+          5.  **DILARANG**:
+              - Jangan buat label "Teks1", "Teks2". Gabung saja jadi satu paragraf di \`question\`.
+              - Jangan generate \`image_prompt\`. Fitur ini sudah dimatikan.
 
           FORMAT OUTPUT (JSON Object):
           {
@@ -470,23 +477,17 @@ export const generateContentFromUri = async (
                 "questions": [
                   {
                     "id": 1,
-                    "question": "...",
-                    "options": ["A", "B", "C", "D"],
+                    "question": "**[Stimulus Data/Tabel jika ada]**\n\n[Teks Pertanyaan Utama]",
+                    "options": ["Pilihan A", "Pilihan B", "Pilihan C", "Pilihan D"],
                     "correct_index": 0,
-                    "explanation": "...",
-                    "image_prompt": "..."
-                  },
-                  ...
+                    "explanation": "..."
+                  }
                 ]
-              },
-              {
-                "kb_name": "KB 2: [Judul KB]",
-                "questions": [...]
               }
             ]
           }
 
-          JANGAN BERHENTI SAMPAI SEMUA KB TER-SCAN!`;
+          JANGAN BERHENTI SAMPAI SEMUA KB TER-SCAN! JAGA URUTAN SOAL SESUAI MODUL!`;
             isJsonMode = true;
             isJsonMode = true;
         } else if (subType === 'TOC') {
@@ -585,8 +586,8 @@ export const generateContentFromUri = async (
                                                     items: { type: Type.STRING }
                                                 },
                                                 correct_index: { type: Type.INTEGER },
-                                                explanation: { type: Type.STRING },
-                                                image_prompt: { type: Type.STRING }
+                                                explanation: { type: Type.STRING }
+                                                // image_prompt removed
                                             },
                                             required: ["id", "question", "options", "correct_index", "explanation"]
                                         }
@@ -612,8 +613,8 @@ export const generateContentFromUri = async (
                                 items: { type: Type.STRING }
                             },
                             correct_index: { type: Type.INTEGER },
-                            explanation: { type: Type.STRING },
-                            image_prompt: { type: Type.STRING }
+                            explanation: { type: Type.STRING }
+                            // image_prompt removed
                         },
                         required: ["id", "question", "options", "correct_index", "explanation"]
                     }
