@@ -470,16 +470,17 @@ export const generateContentFromUri = async (
               - ...dst.
               - GABUNGKAN SEMUANYA menjadi satu list panjang (total target: 30-50 soal).
           
-          3.  **STEP 3: CROSS-CHECK JAWAABAN**:
-              - Cari KUNCI JAWABAN di akhir Modul.
-              - Cocokkan jawaban setiap soal dengan Kunci Jawaban tersebut.
-              - Penjelasan harus berbunyi: "Sesuai Kunci Jawaban Tes Formatif X nomor Y..."
+          3.  **STEP 3: CROSS-CHECK & EXPLANATION**:
+              - **Index Jawaban Benar**: GUNAKAN KUNCI JAWABAN MODUL (Wajib!).
+              - **Penjelasan**: JANGAN hanya tulis "Sesuai kunci jawaban". 
+              - **TUGAS**: Analisis materi di modul (Cari KB dan Halamannya) untuk menjelaskan MENGAPA kunci jawaban itu benar.
+              - Contoh: "Jawaban B benar karena [Penjelasan Konsep]. Hal ini sesuai dengan materi KB 2 halaman 2.15."
 
           FORMAT OUTPUT (JSON Array):
           - \`question\`: Teks soal.
           - \`options\`: [A, B, C, D].
-          - \`correct_index\`: 0-3 (MENGACU KE KUNCI JAWABAN MODUL).
-          - \`explanation\`: "Jawaban: [Huruf] | Sumber: Kunci Jawaban Modul [KB X]".
+          - \`correct_index\`: 0-3 (WAJIB SESUAI KUNCI JAWABAN MODUL).
+          - \`explanation\`: "Penjelasan konsep lengkap + Referensi Lokasi di Modul (KB/Hal)".
 
           JANGAN BERHENTI SAMPAI SEMUA KB TER-SCAN!`;
             isJsonMode = true;
