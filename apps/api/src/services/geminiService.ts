@@ -511,7 +511,6 @@ export const generateContentFromUri = async (
       1. Sampling materi secara MERATA dari BAB AWAL sampai BAB AKHIR dalam file PDF ini.
       2. Prioritaskan soal-soal studi kasus atau pemahaman konsep (C3-C4).
       3. Pastikan field 'explanation' mencantumkan dari Modul mana soal tersebut berasal (Contoh: "Berdasarkan Modul 3 KB 1, ...").
-      3. Pastikan field 'explanation' mencantumkan dari Modul mana soal tersebut berasal (Contoh: "Berdasarkan Modul 3 KB 1, ...").
       4. Soal harus menantang setara Ujian Akhir Semester Universitas Terbuka.
       5. Jika soal mengandung coding (R/Python/dll), GUNAKAN FORMAT MARKDOWN CODE BLOCK agar rapi.
       6. Pastikan output adalah valid JSON Array dengan panjang 45 item.
